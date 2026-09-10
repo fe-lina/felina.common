@@ -1,0 +1,6 @@
+<Project xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+  <PropertyGroup>
+    <FelinaContractsVersion>0.0.1</FelinaContractsVersion>
+    <FelinaStorageClientVersion>0.0.1</FelinaStorageClientVersion>
+  </PropertyGroup>
+</Project>

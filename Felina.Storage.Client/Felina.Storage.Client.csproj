@@ -1,0 +1,35 @@
+<Project Sdk="Microsoft.NET.Sdk">
+  <Import Project="$(SolutionDir)ProjectReferences_$(SolutionName).txt" Condition="Exists('$(SolutionDir)ProjectReferences_$(SolutionName).txt')" />
+  <PropertyGroup>
+    <TargetFramework>net8.0</TargetFramework>
+    <ImplicitUsings>enable</ImplicitUsings>
+    <Nullable>enable</Nullable>
+    <AssemblyName>Felina.Storage.Client</AssemblyName>
+    <RootNamespace>Felina</RootNamespace>
+    <Title>Felina Storage Client</Title>
+    <Authors>Felina Project</Authors>
+    <Description>Reusable client and endpoint proxy helpers for app-facing Felina Storage integrations.</Description>
+    <PackageId>Felina.Storage.Client</PackageId>
+    <PackageReadmeFile>README.md</PackageReadmeFile>
+    <IsPackable>true</IsPackable>
+    <Version>$(FelinaStorageClientVersion)</Version>
+    <GeneratePackageOnBuild Condition="'$(Configuration)' == 'Release'">true</GeneratePackageOnBuild>
+    <IncludeSymbols>true</IncludeSymbols>
+    <SymbolPackageFormat>snupkg</SymbolPackageFormat>
+    <DebugType Condition="'$(Configuration)' == 'Release'">portable</DebugType>
+    <RepositoryUrl>https://github.com/fe-lina/Common</RepositoryUrl>
+    <RepositoryType>git</RepositoryType>
+    <PackageProjectUrl>https://github.com/fe-lina/Common</PackageProjectUrl>
+    <PublishRepositoryUrl>true</PublishRepositoryUrl>
+  </PropertyGroup>
+  <ItemGroup>
+    <FrameworkReference Include="Microsoft.AspNetCore.App" />
+  </ItemGroup>
+  <ItemGroup>
+    <ProjectReference Include="..\Felina.Contracts\Felina.Contracts.csproj" />
+    <None Update="README.md" Pack="true" PackagePath="\" />
+  </ItemGroup>
+  <ItemGroup>
+    <PackageReference Include="Haley.Rest" Version="$(HaleyRestVersion)" />
+  </ItemGroup>
+</Project>

@@ -1,0 +1,8 @@
+<Project>
+  <Import Project="$(MSBuildThisFileDirectory)Felina.Version.Props" />
+  <PropertyGroup>
+    <FelinaContractsVersion Condition="'$(FelinaContractsVersion)' == ''">0.0.1</FelinaContractsVersion>
+    <FelinaStorageClientVersion Condition="'$(FelinaStorageClientVersion)' == ''">0.0.1</FelinaStorageClientVersion>
+    <HaleyRestVersion Condition="'$(HaleyRestVersion)' == ''">3.0.29</HaleyRestVersion>
+  </PropertyGroup>
+</Project>

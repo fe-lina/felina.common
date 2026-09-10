@@ -1,0 +1,27 @@
+<Project Sdk="Microsoft.NET.Sdk">
+  <PropertyGroup>
+    <TargetFramework>net8.0</TargetFramework>
+    <ImplicitUsings>enable</ImplicitUsings>
+    <Nullable>enable</Nullable>
+    <AssemblyName>Felina.Contracts</AssemblyName>
+    <RootNamespace>Felina</RootNamespace>
+    <Title>Felina Contracts</Title>
+    <Authors>Felina Project</Authors>
+    <Description>Shared public contracts for Felina client libraries.</Description>
+    <PackageId>Felina.Contracts</PackageId>
+    <PackageReadmeFile>README.md</PackageReadmeFile>
+    <IsPackable>true</IsPackable>
+    <Version>$(FelinaContractsVersion)</Version>
+    <GeneratePackageOnBuild Condition="'$(Configuration)' == 'Release'">true</GeneratePackageOnBuild>
+    <IncludeSymbols>true</IncludeSymbols>
+    <SymbolPackageFormat>snupkg</SymbolPackageFormat>
+    <DebugType Condition="'$(Configuration)' == 'Release'">portable</DebugType>
+    <RepositoryUrl>https://github.com/fe-lina/Common</RepositoryUrl>
+    <RepositoryType>git</RepositoryType>
+    <PackageProjectUrl>https://github.com/fe-lina/Common</PackageProjectUrl>
+    <PublishRepositoryUrl>true</PublishRepositoryUrl>
+  </PropertyGroup>
+  <ItemGroup>
+    <None Update="README.md" Pack="true" PackagePath="\" />
+  </ItemGroup>
+</Project>
