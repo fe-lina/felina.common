@@ -16,9 +16,9 @@
     <IncludeSymbols>true</IncludeSymbols>
     <SymbolPackageFormat>snupkg</SymbolPackageFormat>
     <DebugType Condition="'$(Configuration)' == 'Release'">portable</DebugType>
-    <RepositoryUrl>https://github.com/fe-lina/Common</RepositoryUrl>
+    <RepositoryUrl>https://github.com/fe-lina/felina.common</RepositoryUrl>
     <RepositoryType>git</RepositoryType>
-    <PackageProjectUrl>https://github.com/fe-lina/Common</PackageProjectUrl>
+    <PackageProjectUrl>https://github.com/fe-lina/felina.common</PackageProjectUrl>
     <PublishRepositoryUrl>true</PublishRepositoryUrl>
   </PropertyGroup>
   <ItemGroup>
