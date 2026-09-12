@@ -8,6 +8,7 @@ public sealed class FolderSearchRequest : FolderTargetRequest
     public bool Recursive { get; set; }
     public int Page { get; set; } = 1;
     public int PageSize { get; set; } = 50;
+    public bool IncludeTotals { get; set; } = true;
     public bool IncludeAll { get; set; }
     public FolderSortMode Sort { get; set; } = FolderSortMode.Id;
     public SortDirection Direction { get; set; } = SortDirection.Asc;

@@ -73,6 +73,14 @@ internal sealed class HttpStorageClient : IStorageClient
         CancellationToken cancellationToken = default)
         => await SendStringAsync(HttpMethod.Get, storagePath, query, cancellationToken).ConfigureAwait(false);
 
+    public async Task<StorageCapacitySnapshot> GetCapacityAsync(
+        CancellationToken cancellationToken = default)
+    {
+        var content = await GetStringAsync("capacity", cancellationToken: cancellationToken).ConfigureAwait(false);
+        return JsonSerializer.Deserialize<StorageCapacitySnapshot>(content, JsonOptions)
+            ?? throw new InvalidOperationException("Felina Storage returned an empty capacity response.");
+    }
+
     private async Task<string> SendStringAsync(
         HttpMethod method,
         string storagePath,
@@ -479,6 +487,7 @@ internal sealed class HttpStorageClient : IStorageClient
         var query = BuildFolderTargetQuery(request);
         query.Add(new KeyValuePair<string, string?>("p", Math.Max(1, request.Page).ToString(CultureInfo.InvariantCulture)));
         query.Add(new KeyValuePair<string, string?>("ps", Math.Clamp(request.PageSize, 1, 200).ToString(CultureInfo.InvariantCulture)));
+        query.Add(new KeyValuePair<string, string?>("totals", request.IncludeTotals.ToString()));
         query.Add(new KeyValuePair<string, string?>("include_all", request.IncludeAll.ToString()));
         query.Add(new KeyValuePair<string, string?>("sort", request.Sort.ToString()));
         query.Add(new KeyValuePair<string, string?>("dir", request.Direction.ToString()));
@@ -495,6 +504,7 @@ internal sealed class HttpStorageClient : IStorageClient
         query.Add(new KeyValuePair<string, string?>("recursive", request.Recursive.ToString()));
         query.Add(new KeyValuePair<string, string?>("p", Math.Max(1, request.Page).ToString(CultureInfo.InvariantCulture)));
         query.Add(new KeyValuePair<string, string?>("ps", Math.Clamp(request.PageSize, 1, 200).ToString(CultureInfo.InvariantCulture)));
+        query.Add(new KeyValuePair<string, string?>("totals", request.IncludeTotals.ToString()));
         query.Add(new KeyValuePair<string, string?>("include_all", request.IncludeAll.ToString()));
         query.Add(new KeyValuePair<string, string?>("sort", request.Sort.ToString()));
         query.Add(new KeyValuePair<string, string?>("dir", request.Direction.ToString()));

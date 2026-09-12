@@ -1,105 +1,72 @@
-using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.DependencyInjection.Extensions;
-using Microsoft.Extensions.Options;
-using Haley.Utils;
 
 namespace Felina.Client;
 
 public static class StorageClientRegistration
 {
-    public static IServiceCollection AddStorageClient(
-        this IServiceCollection services,
-        IConfiguration configuration,
-        string sectionName = StorageClientOptions.DefaultSectionName,
-        Action<StorageClientOptions>? configure = null)
-        => AddStorageClient(services, configuration, Options.DefaultName, sectionName, configure, true);
+    public const string ConfigurationPathEnvironmentVariable = "FELINA_CONF_PATH";
 
-    public static IServiceCollection AddStorageClient(
-        this IServiceCollection services,
-        IConfiguration configuration,
-        string name,
-        string sectionName,
-        Action<StorageClientOptions>? configure = null)
-        => AddStorageClient(services, configuration, name, sectionName, configure, false);
-
-    public static IServiceCollection AddStorageClients(
-        this IServiceCollection services,
-        IConfiguration configuration,
-        string sectionName = "Felina:Clients",
-        string defaultsSectionName = "Felina:Defaults")
+    public static IServiceCollection AddStorageClientRegistry(this IServiceCollection services)
     {
-        var clients = configuration.GetSection(sectionName).GetChildren().ToArray();
-        if (clients.Length == 0)
-            throw new InvalidOperationException($"No named Felina Storage clients were found under '{sectionName}'.");
+        var configurationPath = Environment.GetEnvironmentVariable(ConfigurationPathEnvironmentVariable);
+        if (string.IsNullOrWhiteSpace(configurationPath))
+        {
+            throw new InvalidOperationException(
+                $"Environment variable '{ConfigurationPathEnvironmentVariable}' must identify the Felina Storage connection directory.");
+        }
 
-        foreach (var client in clients)
-            AddStorageClient(
-                services,
-                configuration,
-                client.Key,
-                client.Path,
-                null,
-                false,
-                defaultsSectionName);
-
-        return services;
+        return services.AddStorageClientRegistry(configurationPath);
     }
 
-    private static IServiceCollection AddStorageClient(
-        IServiceCollection services,
-        IConfiguration configuration,
-        string name,
-        string sectionName,
-        Action<StorageClientOptions>? configure,
-        bool exposeDefaultClient,
-        string? defaultsSectionName = null)
+    public static IServiceCollection AddStorageClientRegistry(
+        this IServiceCollection services,
+        string configurationPath)
     {
-        if (string.IsNullOrWhiteSpace(name) && name != Options.DefaultName)
-            throw new ArgumentException("A Felina Storage client name is required.", nameof(name));
+        ArgumentNullException.ThrowIfNull(services);
+        if (services.Any(static descriptor => descriptor.ServiceType == typeof(IStorageClientRegistry)))
+            throw new InvalidOperationException("Felina Storage client registry is already registered.");
 
-        var options = services.AddOptions<StorageClientOptions>(name);
-        if (!string.IsNullOrWhiteSpace(defaultsSectionName))
-            options.Bind(configuration.GetSection(defaultsSectionName));
-        options.Bind(configuration.GetSection(sectionName))
-            .Validate(static value =>
-                    IsValidEndpointDescriptor(value.Url) &&
-                    value.TimeoutSeconds >= 0 &&
-                    (!value.Credential.Required ||
-                        (!string.IsNullOrWhiteSpace(value.Credential.Id) &&
-                         !string.IsNullOrWhiteSpace(value.Credential.Secret))) &&
-                    !string.IsNullOrWhiteSpace(value.Credential.ClientHeader) &&
-                    !string.IsNullOrWhiteSpace(value.Credential.KeyHeader),
-                "Felina Storage Url must be a valid Haley endpoint descriptor. Credential Id and Secret are required when credential authentication is enabled.");
-
-        if (configure is not null)
-            options.Configure(configure);
-
-        options.ValidateOnStart();
-
-        services.AddOptions<SignedViewOptions>(name)
-            .Bind(configuration.GetSection($"{sectionName}:SignedView"));
-
-        services.AddSingleton(new StorageClientRegistrationEntry(name));
-        services.TryAddSingleton<IStorageClientFactory, StorageClientFactory>();
-        if (exposeDefaultClient)
+        var registrations = StorageClientConfigurationLoader.Load(configurationPath);
+        foreach (var registration in registrations)
         {
-            services.TryAddSingleton<IStorageClient>(static provider =>
-                provider.GetRequiredService<IStorageClientFactory>().GetRequiredClient(Options.DefaultName));
+            services.AddSingleton(registration);
+            if (registration.Options is not null)
+            {
+                var source = registration.Options;
+                services.AddOptions<StorageClientOptions>(registration.Descriptor.Name)
+                    .Configure(options => Copy(source, options));
+            }
         }
+
+        services.AddSingleton<StorageClientRegistry>();
+        services.AddSingleton<IStorageClientRegistry>(static provider =>
+            provider.GetRequiredService<StorageClientRegistry>());
+        services.AddHostedService<StorageClientRegistryInitializer>();
+        services.AddOptions<SignedViewOptions>();
         services.TryAddSingleton<ISignedViewTokenService, SignedViewTokenService>();
         return services;
     }
 
-    private static bool IsValidEndpointDescriptor(string value)
+    private static void Copy(StorageClientOptions source, StorageClientOptions target)
     {
-        try
+        target.Url = source.Url;
+        target.TimeoutSeconds = source.TimeoutSeconds;
+        target.Credential = new StorageClientCredentialOptions
         {
-            return Uri.TryCreate(value.ToDictionarySplit().GenerateBaseURLAddress(), UriKind.Absolute, out _);
-        }
-        catch
+            Required = source.Credential.Required,
+            Id = source.Credential.Id,
+            Secret = source.Credential.Secret,
+            ClientHeader = source.Credential.ClientHeader,
+            KeyHeader = source.Credential.KeyHeader
+        };
+        target.AdminCredential = new StorageClientCredentialOptions
         {
-            return false;
-        }
+            Required = source.AdminCredential.Required,
+            Id = source.AdminCredential.Id,
+            Secret = source.AdminCredential.Secret,
+            ClientHeader = source.AdminCredential.ClientHeader,
+            KeyHeader = source.AdminCredential.KeyHeader
+        };
     }
 }

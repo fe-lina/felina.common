@@ -4,7 +4,7 @@ namespace Felina.Client;
 
 public sealed class ProxyEndpointOptions
 {
-    public string ClientName { get; set; } = Microsoft.Extensions.Options.Options.DefaultName;
+    public string? ConnectionName { get; set; }
     public string StoragePath { get; set; } = string.Empty;
     public string Method { get; set; } = string.Empty;
     public bool CopyIncomingQuery { get; set; } = true;

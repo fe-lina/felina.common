@@ -48,7 +48,7 @@ public static class ScopedProxyEndpointMapping
 
         return endpoints.MapStorageProxy(pattern, storagePath, method, options =>
         {
-            options.ClientName = scopedOptions.ClientName;
+            options.ConnectionName = scopedOptions.ConnectionName;
             options.CopyIncomingQuery = false;
             options.MaxRequestBodyBytes = scopedOptions.MaxRequestBodyBytes;
             options.StorageMaxSizeMegabytes = scopedOptions.StorageMaxSizeMegabytes;

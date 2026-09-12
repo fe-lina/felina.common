@@ -25,10 +25,10 @@ public static class ProxyEndpointMapping
         return endpoints.MapMethods(
             pattern,
             [method],
-            async (HttpContext context, IStorageClientFactory clients) =>
+            async (HttpContext context, IStorageClientRegistry clients) =>
                 await ExecuteAsync(
                     context,
-                    clients.GetRequiredClient(options.ClientName),
+                    ResolveClient(clients, options.ConnectionName),
                     options).ConfigureAwait(false));
     }
 
@@ -119,6 +119,13 @@ public static class ProxyEndpointMapping
             },
             context.RequestAborted).ConfigureAwait(false);
     }
+
+    private static IStorageClient ResolveClient(
+        IStorageClientRegistry clients,
+        string? connectionName) =>
+        string.IsNullOrWhiteSpace(connectionName)
+            ? clients.GetDefault()
+            : clients.GetRequired(connectionName);
 
     private static string ExpandRouteValues(HttpContext context, string path)
     {

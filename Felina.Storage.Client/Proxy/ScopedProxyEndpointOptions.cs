@@ -4,7 +4,7 @@ public sealed class ScopedProxyEndpointOptions
 {
     private readonly HashSet<string> _allowedIncomingQuery = new(StringComparer.OrdinalIgnoreCase);
 
-    public string ClientName { get; set; } = Microsoft.Extensions.Options.Options.DefaultName;
+    public string? ConnectionName { get; set; }
     public bool CopyIncomingQuery { get; set; }
     public long? MaxRequestBodyBytes { get; set; }
     public int? StorageMaxSizeMegabytes { get; set; }

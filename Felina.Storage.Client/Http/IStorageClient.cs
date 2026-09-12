@@ -17,6 +17,9 @@ public interface IStorageClient
         IEnumerable<KeyValuePair<string, string?>>? query = null,
         CancellationToken cancellationToken = default);
 
+    Task<StorageCapacitySnapshot> GetCapacityAsync(
+        CancellationToken cancellationToken = default);
+
     Task<FileDetailsResponse> GetFileDetailsAsync(
         FileDetailsRequest request,
         CancellationToken cancellationToken = default);
