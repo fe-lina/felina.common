@@ -16,9 +16,13 @@ public interface IStorageClient
         CancellationToken cancellationToken = default)
         => throw new NotSupportedException("This storage client does not originate multipart uploads. Use a named HTTP storage client.");
 
+    /// <summary>
+    /// Opens a complete backend file stream through the download route by default.
+    /// Dispose the returned Content stream. Partial responses are rejected; use ProxyAsync for browser ranges.
+    /// </summary>
     Task<StorageFileResponse> OpenReadAsync(
         FileDetailsRequest request,
-        bool download = false,
+        bool download = true,
         CancellationToken cancellationToken = default)
         => throw new NotSupportedException("This storage client does not expose file content as a backend stream. Use a named HTTP storage client.");
 

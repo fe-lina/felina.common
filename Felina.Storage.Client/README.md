@@ -146,6 +146,35 @@ service-available bytes but never exposes the server path:
 var capacity = await storageClient.GetCapacityAsync();
 ```
 
+## Backend File Stream
+
+`OpenReadAsync` uses the complete-file download route by default. It returns after
+response headers arrive, not after buffering the whole file:
+
+```csharp
+var file = await storage.OpenReadAsync(new FileDetailsRequest
+{
+    Client = clientName,
+    Module = moduleName,
+    VersionUid = versionUid
+}, cancellationToken: cancellationToken);
+await using var content = file.Content;
+await content.CopyToAsync(destination, cancellationToken);
+```
+
+Dispose `Content` to release both the stream and its HTTP response. Pass cancellation
+to subsequent stream reads/copies as well. Metadata reflects the selected endpoint:
+the download endpoint may use `application/octet-stream`.
+
+Explicit `download: false` still requests the view endpoint, but **partial responses
+are rejected with `HttpRequestException`** rather than silently exposing a truncated
+file. Large audio/video views can return an initial 4 MB range. Use `ProxyAsync` for
+browser playback/range requests; `OpenReadAsync` does not assemble ranges.
+
+Update and rebuild consuming applications to pick up the new default (`download: true`).
+Previously compiled callers may still pass the old optional value (`false`). They will
+now receive a clear error on partial content instead of silently reading an incomplete file.
+
 ## Typed Multipart Upload
 
 Resolve the deployment from trusted application placement and use its existing

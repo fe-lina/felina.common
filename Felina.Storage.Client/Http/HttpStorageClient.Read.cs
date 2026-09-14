@@ -1,3 +1,4 @@
+using System.Net;
 using Felina.Contracts;
 
 namespace Felina.Client;
@@ -6,7 +7,7 @@ internal sealed partial class HttpStorageClient
 {
     public async Task<StorageFileResponse> OpenReadAsync(
         FileDetailsRequest request,
-        bool download = false,
+        bool download = true,
         CancellationToken cancellationToken = default)
     {
         ArgumentNullException.ThrowIfNull(request);
@@ -22,16 +23,20 @@ internal sealed partial class HttpStorageClient
         var response = restResponse.OriginalResponse
             ?? throw new HttpRequestException("Felina Storage returned an empty HTTP response.");
 
-        if (!response.IsSuccessStatusCode)
-        {
-            var payload = await response.Content.ReadAsStringAsync(cancellationToken).ConfigureAwait(false);
-            var status = response.StatusCode;
-            response.Dispose();
-            throw new HttpRequestException(payload, null, status);
-        }
-
         try
         {
+            if (!response.IsSuccessStatusCode)
+            {
+                var payload = await response.Content.ReadAsStringAsync(cancellationToken).ConfigureAwait(false);
+                throw new HttpRequestException(payload, null, response.StatusCode);
+            }
+
+            // This API exposes a complete backend stream, not a browser's media range.
+            if (response.StatusCode == HttpStatusCode.PartialContent || response.Content.Headers.ContentRange is not null)
+                throw new HttpRequestException(
+                    "Felina Storage returned partial file content. OpenReadAsync requires a complete file; " +
+                    "use download: true, or ProxyAsync for browser range streaming.", null, response.StatusCode);
+
             var stream = await response.Content.ReadAsStreamAsync(cancellationToken).ConfigureAwait(false);
             var fileName = response.Content.Headers.ContentDisposition?.FileNameStar
                 ?? response.Content.Headers.ContentDisposition?.FileName?.Trim('"')
@@ -87,8 +92,8 @@ internal sealed partial class HttpStorageClient
         {
             if (disposing && Interlocked.Exchange(ref _disposed, 1) == 0)
             {
-                inner.Dispose();
-                response.Dispose();
+                try { inner.Dispose(); }
+                finally { response.Dispose(); }
             }
 
             base.Dispose(disposing);
@@ -98,8 +103,8 @@ internal sealed partial class HttpStorageClient
         {
             if (Interlocked.Exchange(ref _disposed, 1) == 0)
             {
-                await inner.DisposeAsync().ConfigureAwait(false);
-                response.Dispose();
+                try { await inner.DisposeAsync().ConfigureAwait(false); }
+                finally { response.Dispose(); }
             }
 
             GC.SuppressFinalize(this);
