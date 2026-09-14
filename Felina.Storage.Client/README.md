@@ -21,6 +21,7 @@ the private Admin-to-Host management client.
 The consuming API owns business authentication and authorization. This package only:
 
 - forwards requests to internal Felina Storage
+- uploads a backend-owned stream through a typed multipart call
 - adds the backend service key headers
 - maps reusable proxy endpoints when useful
 - creates and validates signed view tokens
@@ -144,6 +145,59 @@ service-available bytes but never exposes the server path:
 ```csharp
 var capacity = await storageClient.GetCapacityAsync();
 ```
+
+## Typed Multipart Upload
+
+Resolve the deployment from trusted application placement and use its existing
+`IStorageClient`; no controller, proxy route, or fabricated `HttpContext` is needed:
+
+```csharp
+using Felina.Contracts;
+
+var storage = storageClients.GetRequired(connectionName);
+await using var stream = File.OpenRead(sourcePath);
+var uploaded = await storage.UploadAsync(new UploadRequest
+{
+    Client = clientName,
+    Module = moduleName,
+    Workspace = workspaceName,
+    FolderCuid = folderCuid,
+    FileName = "report.pdf",
+    ContentType = "application/pdf",
+    Actor = actorId
+}, stream, cancellationToken);
+
+if (!uploaded.Status)
+    return uploaded; // Preserve the failure in your application's feedback flow.
+
+var versionUid = uploaded.Result.VersionUid;
+var rootUid = uploaded.Result.RootUid;
+```
+
+This uploads **one file per call** using the configured Haley.Rest client, base path,
+and service credentials. Scope and targets must be authorized by the consuming app.
+`FileName` is a name, not a path; supply the actual MIME type in `ContentType`.
+
+- With no UID, the Host applies its existing filename-based creation/versioning rules.
+- Set `VersionUid` or `RootUid`, never both. `Replace=true` replaces the selected
+  version (latest content for a root). `Replace=false` creates a new content version.
+  The SDK supplies the matching multipart data key and RUID marker automatically.
+- Set `Thumbnail=true` plus a target to add a thumbnail. Successful thumbnail uploads
+  deliberately return null UIDs, not a new content reference.
+- The result is Haley `IFeedback<UploadedFile>`: check `Status`, not merely HTTP success.
+  Host-reported file failures preserve their message/key/code. HTTP errors throw
+  `HttpRequestException`; invalid response shapes throw `InvalidDataException`;
+  cancellation propagates. Internal storage paths and database IDs are not projected.
+- The caller owns the stream. It stays open even after failure/cancellation, starts at
+  its current position, and can be non-seekable. Keep it open and do not share it with
+  another reader during the upload. File bytes are not buffered in full.
+- No automatic retry, ticket completion, batch upload, or TUS/chunk orchestration is
+  performed. A lost response can mean a committed file: resolve before retrying.
+  Configure the named connection timeout for the expected duration.
+
+This method requires a package build containing the new API. Source changes alone do
+not update existing installed packages. Endpoint proxy mapping remains available for
+browser requests and resumable protocols; it is not required for this backend call.
 
 ## Internal Felina Service Auth
 

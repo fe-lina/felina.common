@@ -13,7 +13,14 @@ public interface IStorageClient
     Task<IFeedback<UploadedFile>> UploadAsync(
         UploadRequest request,
         Stream content,
-        CancellationToken cancellationToken = default);
+        CancellationToken cancellationToken = default)
+        => throw new NotSupportedException("This storage client does not originate multipart uploads. Use a named HTTP storage client.");
+
+    Task<StorageFileResponse> OpenReadAsync(
+        FileDetailsRequest request,
+        bool download = false,
+        CancellationToken cancellationToken = default)
+        => throw new NotSupportedException("This storage client does not expose file content as a backend stream. Use a named HTTP storage client.");
 
     Uri BuildUri(string storagePath, IEnumerable<KeyValuePair<string, string?>>? query = null);
 
