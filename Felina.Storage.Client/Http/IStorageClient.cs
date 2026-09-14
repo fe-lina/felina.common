@@ -1,10 +1,20 @@
 using Microsoft.AspNetCore.Http;
 using Felina.Contracts;
+using Haley.Abstractions;
 
 namespace Felina.Client;
 
 public interface IStorageClient
 {
+    /// <summary>
+    /// Streams one file as multipart content from its current position without closing it.
+    /// Check feedback.Status before using feedback.Result. No automatic retry is performed.
+    /// </summary>
+    Task<IFeedback<UploadedFile>> UploadAsync(
+        UploadRequest request,
+        Stream content,
+        CancellationToken cancellationToken = default);
+
     Uri BuildUri(string storagePath, IEnumerable<KeyValuePair<string, string?>>? query = null);
 
     Task ProxyAsync(

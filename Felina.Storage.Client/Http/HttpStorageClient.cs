@@ -11,7 +11,7 @@ using Microsoft.Extensions.Logging;
 
 namespace Felina.Client;
 
-internal sealed class HttpStorageClient : IStorageClient
+internal sealed partial class HttpStorageClient : IStorageClient
 {
     private static readonly JsonSerializerOptions JsonOptions = new(JsonSerializerDefaults.Web)
     {
