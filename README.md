@@ -12,3 +12,9 @@ contracts, database schemas, migration scripts, deployment configuration, creden
 environment-specific values.
 
 No open-source license is declared by this repository.
+
+## Release operations
+
+Package collection and publishing are owned by the sibling
+`FelinaProject\NuGet Packaging` repository folder. This Common repository contains
+only the public package source.
