@@ -105,9 +105,16 @@ internal sealed partial class HttpStorageClient
             };
         }
 
+        var versionCuid = !string.IsNullOrWhiteSpace(uploaded.VersionCuid)
+            ? uploaded.VersionCuid
+            : uploaded.Result?.Cuid;
+        var rootCuid = !string.IsNullOrWhiteSpace(uploaded.RootCuid)
+            ? uploaded.RootCuid
+            : uploaded.Result?.RootCuid;
+
         if (uploaded.Size is null || uploaded.Size < 0 || string.IsNullOrWhiteSpace(uploaded.OriginalName)
-            || (!thumbnail && (!Guid.TryParse(uploaded.VersionCuid, out var uid) || uid == Guid.Empty
-                || !Guid.TryParse(uploaded.RootCuid, out var root) || root == Guid.Empty)))
+            || (!thumbnail && (!Guid.TryParse(versionCuid, out var uid) || uid == Guid.Empty
+                || !Guid.TryParse(rootCuid, out var root) || root == Guid.Empty)))
             throw new InvalidDataException("Felina Storage returned upload success without the expected file identity or size.");
 
         return new Feedback<UploadedFile>(true)
@@ -120,8 +127,8 @@ internal sealed partial class HttpStorageClient
             {
                 OriginalName = uploaded.OriginalName,
                 Size = uploaded.Size.Value,
-                VersionUid = thumbnail ? null : uploaded.VersionCuid,
-                RootUid = thumbnail ? null : uploaded.RootCuid,
+                VersionUid = thumbnail ? null : versionCuid,
+                RootUid = thumbnail ? null : rootCuid,
                 Version = uploaded.Result?.Version,
                 Actor = uploaded.Result?.Actor
             }
@@ -149,5 +156,7 @@ internal sealed partial class HttpStorageClient
     {
         public int? Version { get; set; }
         public long? Actor { get; set; }
+        public string? Cuid { get; set; }
+        public string? RootCuid { get; set; }
     }
 }

@@ -217,6 +217,10 @@ and service credentials. Scope and targets must be authorized by the consuming a
   Host-reported file failures preserve their message/key/code. HTTP errors throw
   `HttpRequestException`; invalid response shapes throw `InvalidDataException`;
   cancellation propagates. Internal storage paths and database IDs are not projected.
+- The client prefers the Host's top-level `versionCuid` and `rootCuid`, and falls back
+  to legacy `result.cuid` and `result.rootCuid` while older Hosts remain deployed.
+  Consumer code should use `UploadedFile.VersionUid` and `RootUid`, not the Host wire
+  response or its legacy nested `result` object.
 - The caller owns the stream. It stays open even after failure/cancellation, starts at
   its current position, and can be non-seekable. Keep it open and do not share it with
   another reader during the upload. File bytes are not buffered in full.
