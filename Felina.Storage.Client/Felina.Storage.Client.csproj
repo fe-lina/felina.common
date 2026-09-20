@@ -29,7 +29,18 @@
     <ProjectReference Include="..\Felina.Contracts\Felina.Contracts.csproj" />
     <None Update="README.md" Pack="true" PackagePath="\" />
   </ItemGroup>
-  <ItemGroup>
-    <PackageReference Include="Haley.Rest" Version="$(HaleyRestVersion)" />
-  </ItemGroup>
+  <Choose>
+    <When Condition="Exists('$(HaleyRest)\HaleyRest.csproj')">
+      <ItemGroup>
+        <ProjectReference Include="$(HaleyRest)\HaleyRest.csproj">
+          <Name>HaleyRest</Name>
+        </ProjectReference>
+      </ItemGroup>
+    </When>
+    <Otherwise>
+      <ItemGroup>
+        <PackageReference Include="Haley.Rest" Version="$(HaleyRestVersion)" />
+      </ItemGroup>
+    </Otherwise>
+  </Choose>
 </Project>
