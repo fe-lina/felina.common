@@ -422,7 +422,9 @@ internal sealed partial class HttpStorageClient : IStorageClient
         HopByHopHeaders.Contains(header) ||
         SensitiveIncomingHeaders.Contains(header) ||
         string.Equals(header, _options.Credential.ClientHeader, StringComparison.OrdinalIgnoreCase) ||
-        string.Equals(header, _options.Credential.KeyHeader, StringComparison.OrdinalIgnoreCase);
+        string.Equals(header, _options.Credential.KeyHeader, StringComparison.OrdinalIgnoreCase) ||
+        string.Equals(header, _options.AdminCredential.ClientHeader, StringComparison.OrdinalIgnoreCase) ||
+        string.Equals(header, _options.AdminCredential.KeyHeader, StringComparison.OrdinalIgnoreCase);
 
     private static void CopyResponseHeaders(HttpContext context, HttpResponseMessage response)
     {
@@ -457,12 +459,13 @@ internal sealed partial class HttpStorageClient : IStorageClient
 
     private void AddServiceHeaders(HttpRequestMessage request)
     {
-        if (!_options.Credential.Required) return;
-
-        request.Headers.Remove(_options.Credential.ClientHeader);
-        request.Headers.Remove(_options.Credential.KeyHeader);
-        request.Headers.TryAddWithoutValidation(_options.Credential.ClientHeader, _options.Credential.Id);
-        request.Headers.TryAddWithoutValidation(_options.Credential.KeyHeader, _options.Credential.Secret);
+        foreach (var credential in new[] { _options.Credential, _options.AdminCredential }) {
+            if (!credential.Required) continue;
+            request.Headers.Remove(credential.ClientHeader);
+            request.Headers.Remove(credential.KeyHeader);
+            request.Headers.TryAddWithoutValidation(credential.ClientHeader, credential.Id);
+            request.Headers.TryAddWithoutValidation(credential.KeyHeader, credential.Secret);
+        }
     }
 
     private static List<KeyValuePair<string, string?>> BuildFileDetailsQuery(FileDetailsRequest request)

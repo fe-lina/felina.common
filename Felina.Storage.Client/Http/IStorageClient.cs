@@ -6,6 +6,18 @@ namespace Felina.Client;
 
 public interface IStorageClient
 {
+    Task<FolderInfoResponse> GetFolderInfoAsync(FolderTargetRequest request, CancellationToken cancellationToken = default)
+        => throw new NotSupportedException();
+    Task SetFolderMetadataAsync(FolderTargetRequest request, string metadata, CancellationToken cancellationToken = default)
+        => throw new NotSupportedException();
+    Task RenameFolderAsync(RenameFolderRequest request, CancellationToken cancellationToken = default)
+        => throw new NotSupportedException();
+    Task<FolderInfoResponse> UploadFolderThumbnailAsync(FolderThumbnailUploadRequest request, Stream content, CancellationToken cancellationToken = default)
+        => throw new NotSupportedException();
+    Task<StorageFileResponse> OpenFolderThumbnailAsync(FolderTargetRequest request, CancellationToken cancellationToken = default)
+        => throw new NotSupportedException();
+    Task<FolderInfoResponse> DeleteFolderThumbnailAsync(FolderThumbnailDeleteRequest request, CancellationToken cancellationToken = default)
+        => throw new NotSupportedException();
     /// <summary>
     /// Streams one file as multipart content from its current position without closing it.
     /// Check feedback.Status before using feedback.Result. No automatic retry is performed.

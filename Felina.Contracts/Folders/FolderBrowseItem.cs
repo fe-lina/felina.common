@@ -2,6 +2,7 @@ namespace Felina.Contracts;
 
 public sealed class FolderBrowseItem
 {
+    public bool IsHidden { get; set; }
     public string ItemType { get; set; } = string.Empty;
     public long Id { get; set; }
     public string Cuid { get; set; } = string.Empty;
