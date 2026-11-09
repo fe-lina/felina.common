@@ -39,7 +39,7 @@
     </When>
     <Otherwise>
       <ItemGroup>
-        <PackageReference Include="Haley.Rest" Version="$(HaleyRestVersion)" />
+        <PackageReference Include="Haley.Rest" Version="3.0.31" />
       </ItemGroup>
     </Otherwise>
   </Choose>
